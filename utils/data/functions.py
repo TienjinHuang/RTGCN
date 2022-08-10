@@ -16,8 +16,7 @@ def load_adjacency_matrix(adj_path, dtype=np.float32):
 
 
 def generate_dataset(
-    data, seq_len, pre_len, time_len=None, split_ratio=0.8, normalize=True
-):
+    data, seq_len, pre_len, time_len=None, split_ratio=0.8, normalize=True,noise=True,noise_ratio=0.2,noise_sever=1):
     """
     :param data: feature matrix
     :param seq_len: length of the train data sequence
@@ -34,6 +33,19 @@ def generate_dataset(
         data = data / max_val
     train_size = int(time_len * split_ratio)
     train_data = data[:train_size]
+    if noise:
+        indexes=np.arange(train_size)
+        temp_len=int(train_size*noise_ratio)
+        np.random.shuffle(indexes)
+        noise_indexes=indexes[:temp_len]
+        max_value=np.max(train_data)-np.min(train_data)
+        noise_shape=train_data[noise_indexes].shape
+        train_data[noise_indexes]=train_data[noise_indexes]+np.random.randn(*noise_shape)*max_val*noise_sever*0.1
+
+        #shape=train_data.shape
+            
+
+
     test_data = data[train_size:time_len]
     train_X, train_Y, test_X, test_Y = list(), list(), list(), list()
     for i in range(len(train_data) - seq_len - pre_len):
@@ -46,7 +58,7 @@ def generate_dataset(
 
 
 def generate_torch_datasets(
-    data, seq_len, pre_len, time_len=None, split_ratio=0.8, normalize=True
+    data, seq_len, pre_len, time_len=None, split_ratio=0.8, normalize=True,noise=True,noise_ratio=0.2,noise_sever=1
 ):
     train_X, train_Y, test_X, test_Y = generate_dataset(
         data,
@@ -55,6 +67,9 @@ def generate_torch_datasets(
         time_len=time_len,
         split_ratio=split_ratio,
         normalize=normalize,
+        noise=noise,
+        noise_ratio=noise_ratio,
+        noise_sever=noise_sever
     )
     train_dataset = torch.utils.data.TensorDataset(
         torch.FloatTensor(train_X), torch.FloatTensor(train_Y)

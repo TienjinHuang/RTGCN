@@ -145,5 +145,8 @@ class SupervisedForecastTask(pl.LightningModule):
         parser.add_argument("--weight_decay", "--wd", type=float, default=5e-4)
         parser.add_argument("--loss", type=str, default="mse")
         parser.add_argument("--lamda", type=float, default=1.0)
+        parser.add_argument("--noise", action='store_true')
+        parser.add_argument("--noise_ratio", type=float, default=0.2)
+        parser.add_argument("--noise_sever", type=float, default=1.0)
         parser.add_argument("--kl_gamma", type=float, default=5e-4)
         return parser
