@@ -34,13 +34,22 @@ def generate_dataset(
     train_size = int(time_len * split_ratio)
     train_data = data[:train_size]
     if noise:
-        indexes=np.arange(train_size)
+        indexes=np.arange(train_size*data.shape[1])
+        #indexes_node=np.arange(data.shape[1])
         temp_len=int(train_size*noise_ratio)
+        #temp_len_node=int(data.shape[1]*noise_ratio_node)
         np.random.shuffle(indexes)
         noise_indexes=indexes[:temp_len]
+        #noise_indexes_node=indexes_node[:temp_len_node]
+
         max_value=np.max(train_data)-np.min(train_data)
+
+
+        origin_shape=train_data.shape
+        train_data=train_data.reshape((train_size*data.shape[1],-1))
         noise_shape=train_data[noise_indexes].shape
-        train_data[noise_indexes]=train_data[noise_indexes]+np.random.randn(*noise_shape)*max_val*noise_sever*0.1
+        train_data[noise_indexes]=train_data[noise_indexes]+np.random.randn(*noise_shape)*max_value*noise_sever*0.1
+        train_data=train_data.reshape(origin_shape)
 
         #shape=train_data.shape
             
