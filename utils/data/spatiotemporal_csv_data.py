@@ -18,12 +18,14 @@ class SpatioTemporalCSVDataModule(pl.LightningDataModule):
         noise=True,
         noise_ratio=0.2,
         noise_sever=1,
+        noise_ratio_node=0.2,
         **kwargs
     ):
         super(SpatioTemporalCSVDataModule, self).__init__()
         self.noise=noise
         self.noise_ratio=noise_ratio
         self.noise_sever=noise_sever
+        self.noise_ratio_node=noise_ratio_node
         self._feat_path = feat_path
         self._adj_path = adj_path
         self.batch_size = batch_size
@@ -57,7 +59,8 @@ class SpatioTemporalCSVDataModule(pl.LightningDataModule):
             normalize=self.normalize,
             noise=self.noise,
             noise_ratio=self.noise_ratio,
-            noise_sever=self.noise_sever
+            noise_sever=self.noise_sever,
+            noise_ratio_node=self.noise_ratio_node
         )
 
     def train_dataloader(self):

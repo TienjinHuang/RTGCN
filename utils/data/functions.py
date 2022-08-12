@@ -16,7 +16,7 @@ def load_adjacency_matrix(adj_path, dtype=np.float32):
 
 
 def generate_dataset(
-    data, seq_len, pre_len, time_len=None, split_ratio=0.8, normalize=True,noise=True,noise_ratio=0.2,noise_sever=1):
+    data, seq_len, pre_len, time_len=None, split_ratio=0.8, normalize=True,noise=True,noise_ratio=0.2,noise_sever=1,noise_ratio_node=0.2):
     """
     :param data: feature matrix
     :param seq_len: length of the train data sequence
@@ -34,22 +34,29 @@ def generate_dataset(
     train_size = int(time_len * split_ratio)
     train_data = data[:train_size]
     if noise:
-        indexes=np.arange(train_size*data.shape[1])
-        #indexes_node=np.arange(data.shape[1])
+        print("noise_ratio",noise_ratio,"noise_sever",noise_sever,"noise_ratio_node",noise_ratio_node)
+        indexes=np.arange(train_size)
+        indexes_node=np.arange(data.shape[1])
         temp_len=int(train_size*noise_ratio)
-        #temp_len_node=int(data.shape[1]*noise_ratio_node)
+        temp_len_node=int(data.shape[1]*noise_ratio_node)
         np.random.shuffle(indexes)
+        np.random.shuffle(indexes_node)
         noise_indexes=indexes[:temp_len]
+        noise_indexes_node=indexes_node[:temp_len_node]
         #noise_indexes_node=indexes_node[:temp_len_node]
-
+        mask1=np.zeros_like(train_data).astype(np.bool_)
+        mask2=np.zeros_like(train_data).astype(np.bool_)
+        mask1[noise_indexes,:]=True
+        mask2=mask2.transpose((1,0))
+        mask2[noise_indexes_node,:]=True
+        mask2=mask2.transpose((1,0))
+        mask=mask2&mask1
         max_value=np.max(train_data)-np.min(train_data)
-
-
         origin_shape=train_data.shape
-        train_data=train_data.reshape((train_size*data.shape[1],-1))
-        noise_shape=train_data[noise_indexes].shape
-        train_data[noise_indexes]=train_data[noise_indexes]+np.random.randn(*noise_shape)*max_value*noise_sever*0.1
-        train_data=train_data.reshape(origin_shape)
+        #train_data=train_data.reshape((train_size*data.shape[1],-1))
+        #noise_shape=train_data[noise_indexes].shape
+        train_data[mask]=train_data[mask]+np.random.randn(*origin_shape)[mask]*max_value*noise_sever*0.1
+        #train_data=train_data.reshape(origin_shape)
 
         #shape=train_data.shape
             
@@ -67,7 +74,7 @@ def generate_dataset(
 
 
 def generate_torch_datasets(
-    data, seq_len, pre_len, time_len=None, split_ratio=0.8, normalize=True,noise=True,noise_ratio=0.2,noise_sever=1
+    data, seq_len, pre_len, time_len=None, split_ratio=0.8, normalize=True,noise=True,noise_ratio=0.2,noise_sever=1,noise_ratio_node=0.2
 ):
     train_X, train_Y, test_X, test_Y = generate_dataset(
         data,
@@ -78,7 +85,8 @@ def generate_torch_datasets(
         normalize=normalize,
         noise=noise,
         noise_ratio=noise_ratio,
-        noise_sever=noise_sever
+        noise_sever=noise_sever,
+        noise_ratio_node=noise_ratio_node
     )
     train_dataset = torch.utils.data.TensorDataset(
         torch.FloatTensor(train_X), torch.FloatTensor(train_Y)
