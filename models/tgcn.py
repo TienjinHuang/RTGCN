@@ -226,7 +226,12 @@ class TGCNCell(nn.Module):
         # c (batch_size, num_nodes * num_gru_units)
         #print(r.shape)
         #print(hidden_state.shape)
-        r=torch.cat((r,r),dim=-1)
+        #print(hidden_mean.shape)
+        #print(r.shape)
+        #hidden_state[:,:,:hidden_mean.shape[2]]=hidden_state[:,:,:hidden_mean.shape[2]]*r
+        #hidden_state[:,:,hidden_mean.shape[2]:]=hidden_state[:,:,hidden_mean.shape[2]:]*r*r
+        r_concat=torch.cat((r,r*r),dim=2)
+        hidden_state=hidden_state*r_concat
         c = self.graph_conv2(inputs,  hidden_state)
 
         c_mean,c_var=torch.chunk(c,chunks=2,dim=-1)
@@ -235,7 +240,7 @@ class TGCNCell(nn.Module):
         # h := u * h + (1 - u) * c
         # h (batch_size, num_nodes * num_gru_units)
         new_hidden_mean = u * hidden_mean + (1.0 - u) * c_mean
-        new_hidden_var = u* hidden_var + (1.0 - u) *c_var
+        new_hidden_var = u*u* hidden_var + (1.0 - u)*(1.0-u) *c_var
         new_hidden_state=torch.cat((new_hidden_mean,new_hidden_var),dim=-1)
         return new_hidden_state, new_hidden_state
 
